@@ -15,6 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://github.com/cli/cli/releases/download/v2.7.0/gh_2.7.0_linux_amd64.deb -o gh.deb
+          sudo dpkg -i gh.deb
+
       - name: Ensure branch `stage` exists
         run: git fetch origin stage
 
@@ -87,6 +92,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Generate release notes
+        run: |
+          # Generate release notes based on the differences between master and develop
+          git log --oneline $(git merge-base master develop)..develop > release-notes.md
+
       - name: Create a tag for master
         run: |
           VERSION_TAG="v$(date +'%Y%m%d%H%M%S')"
@@ -102,4 +112,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           RELEASE_TITLE="${{ github.event.inputs.release_title }}"
-          gh release create $VERSION_TAG --title "$RELEASE_TITLE" --notes "$(git log --oneline master..develop)" $VERSION_TAG
+          gh release create $VERSION_TAG --title "$RELEASE_TITLE" --notes "$(cat release-notes.md)" $VERSION_TAG
