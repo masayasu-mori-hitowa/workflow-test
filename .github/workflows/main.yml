@@ -1,0 +1,105 @@
+name: Merge and Create GitHub Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_title:
+        description: 'GitHub Release Title'
+        required: true
+        type: string
+
+jobs:
+  merge_to_master:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Ensure branch `stage` exists
+        run: git fetch origin stage
+
+      - name: Create Pull Request from `stage` to `master`
+        id: pr_create_master
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: 'Merge stage to master'
+          body: 'Automated pull request to merge `stage` into `master`.'
+          base: master
+          head: stage
+          commit-message: 'Merging stage into master'
+          labels: 'auto-merge'
+
+      - name: Check for merge conflicts in PR to master
+        if: steps.pr_create_master.outputs.pull-request-url != ''
+        run: |
+          pr_url="${{ steps.pr_create_master.outputs.pull-request-url }}"
+          pr_number=$(echo $pr_url | sed 's/.*\/\([0-9]*\)$/\1/')
+          pr_status=$(gh pr view $pr_number --json mergeable --jq .mergeable)
+
+          if [ "$pr_status" == "MERGEABLE" ]; then
+            echo "No conflicts, merging the PR to master."
+            gh pr merge $pr_number --merge --auto --delete-branch
+          else
+            echo "Conflicts detected, skipping the merge."
+            exit 1
+          fi
+
+  merge_to_develop:
+    runs-on: ubuntu-latest
+    needs: merge_to_master
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Ensure branch `master` exists
+        run: git fetch origin master
+
+      - name: Create Pull Request from `master` to `develop`
+        id: pr_create_develop
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: 'Merge master to develop'
+          body: 'Automated pull request to merge `master` into `develop`.'
+          base: develop
+          head: master
+          commit-message: 'Merging master into develop'
+          labels: 'auto-merge'
+
+      - name: Check for merge conflicts in PR to develop
+        if: steps.pr_create_develop.outputs.pull-request-url != ''
+        run: |
+          pr_url="${{ steps.pr_create_develop.outputs.pull-request-url }}"
+          pr_number=$(echo $pr_url | sed 's/.*\/\([0-9]*\)$/\1/')
+          pr_status=$(gh pr view $pr_number --json mergeable --jq .mergeable)
+
+          if [ "$pr_status" == "MERGEABLE" ]; then
+            echo "No conflicts, merging the PR to develop."
+            gh pr merge $pr_number --merge --auto --delete-branch
+          else
+            echo "Conflicts detected, skipping the merge."
+            exit 1
+          fi
+
+  create_tag_and_release:
+    runs-on: ubuntu-latest
+    needs: merge_to_develop
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create a tag for master
+        run: |
+          VERSION_TAG="v$(date +'%Y%m%d%H%M%S')"
+          git tag $VERSION_TAG
+          git push origin $VERSION_TAG
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release-notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TITLE="${{ github.event.inputs.release_title }}"
+          gh release create $VERSION_TAG --title "$RELEASE_TITLE" --notes "$(git log --oneline master..develop)" $VERSION_TAG
