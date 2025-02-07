@@ -7,6 +7,10 @@ on:
         description: 'GitHub Release Title'
         required: true
         type: string
+permissions:
+  pull-requests: write # PR を作成・マージするための権限
+  actions: write   # GitHub Actions の権限
+  admin: write     # リポジトリの管理権限（タグ作成、リリース作成）
 
 jobs:
   merge_to_main:
