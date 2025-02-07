@@ -103,13 +103,15 @@ jobs:
           git tag $VERSION_TAG
           git push origin $VERSION_TAG
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release using action-gh-release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             release-notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add release title and finalize GitHub Release
         run: |
           RELEASE_TITLE="${{ github.event.inputs.release_title }}"
           gh release create $VERSION_TAG --title "$RELEASE_TITLE" --notes "$(cat release-notes.md)" $VERSION_TAG
