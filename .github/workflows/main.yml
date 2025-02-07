@@ -37,6 +37,9 @@ jobs:
           head: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
+          
+      - name: login
+        run: gh auth login
 
       - name: Check for merge conflicts in PR to main
         if: steps.pr_create_main.outputs.pull-request-url != ''
