@@ -42,7 +42,7 @@ jobs:
           branch: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
-          delete-branch: true
+          delete-branch: false
           
       - name: Auto approve
         if: steps.pr_create_main.outputs.pull-request-operation == 'created'
@@ -72,13 +72,12 @@ jobs:
         id: pr_create_develop
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.PAT }}
           title: 'Merge main to develop'
           body: 'Automated pull request to merge `main` into `develop`.'
           branch: main
           commit-message: 'Merging main into develop'
           labels: 'auto-merge'
-          delete-branch: true
+          delete-branch: false
           
       - name: Auto approve
         if: steps.pr_create_develop.outputs.pull-request-operation == 'created'
