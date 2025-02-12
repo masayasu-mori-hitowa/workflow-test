@@ -42,6 +42,7 @@ jobs:
           branch: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
+          delete-branch: true
           
       - name: Auto approve
         if: steps.pr_create_main.outputs.pull-request-operation == 'created'
@@ -64,7 +65,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: develop
+          ref: 'develop'
           fetch-depth: 0
 
       - name: Create Pull Request from `main` to `develop`
@@ -77,7 +78,7 @@ jobs:
           branch: main
           commit-message: 'Merging main into develop'
           labels: 'auto-merge'
-          delete-branch: false
+          delete-branch: true
           
       - name: Auto approve
         if: steps.pr_create_develop.outputs.pull-request-operation == 'created'
