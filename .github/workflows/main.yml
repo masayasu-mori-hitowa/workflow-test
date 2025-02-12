@@ -13,14 +13,17 @@ permissions:
   contents: write    # リポジトリの管理権限（タグ作成、リリース作成）
 
 jobs:
+  login_gh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: login
+        run: gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+ 
   merge_to_main:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: stage
-          fetch-depth: 0
 
       - name: Install GitHub CLI
         run: |
@@ -36,28 +39,23 @@ jobs:
         with:
           title: 'Merge stage to main'
           body: 'Automated pull request to merge `stage` into `main`.'
-          base: main
           branch: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
           
-      - name: login
-        run: gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+      - name: Auto approve
+        if: steps.pr_create_main.outputs.pull-request-operation == 'created'
+        run: gh pr review --approve "${{ steps.pr_create_main.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check for merge conflicts in PR to main
-        if: steps.pr_create_main.outputs.pull-request-url != ''
-        run: |
-          pr_url="${{ steps.pr_create_main.outputs.pull-request-url }}"
-          pr_number=$(echo $pr_url | sed 's/.*\/\([0-9]*\)$/\1/')
-          pr_status=$(gh pr view $pr_number --json mergeable --jq .mergeable)
-
-          if [ "$pr_status" == "MERGEABLE" ]; then
-            echo "No conflicts, merging the PR to main."
-            gh pr merge $pr_number --merge --auto --delete-branch
-          else
-            echo "Conflicts detected, skipping the merge."
-            exit 1
-          fi
+      - name: Enable Pull Request Automerge
+        if: steps.pr_create_main.outputs.pull-request-operation == 'created'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.PAT }}
+          pull-request-number: ${{ steps.pr_create_main.outputs.pull-request-number }}
+          merge-method: merge
 
   merge_to_develop:
     runs-on: ubuntu-latest
@@ -66,38 +64,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: develop
           fetch-depth: 0
-
-      - name: Ensure branch `main` exists
-        run: git fetch origin main
 
       - name: Create Pull Request from `main` to `develop`
         id: pr_create_develop
         uses: peter-evans/create-pull-request@v4
         with:
+          token: ${{ secrets.PAT }}
           title: 'Merge main to develop'
           body: 'Automated pull request to merge `main` into `develop`.'
-          base: develop
           branch: main
           commit-message: 'Merging main into develop'
           labels: 'auto-merge'
           delete-branch: false
+          
+      - name: Auto approve
+        if: steps.pr_create_develop.outputs.pull-request-operation == 'created'
+        run: gh pr review --approve "${{ steps.pr_create_develop.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check for merge conflicts in PR to develop
-        if: steps.pr_create_develop.outputs.pull-request-url != ''
-        run: |
-          pr_url="${{ steps.pr_create_develop.outputs.pull-request-url }}"
-          pr_number=$(echo $pr_url | sed 's/.*\/\([0-9]*\)$/\1/')
-          pr_status=$(gh pr view $pr_number --json mergeable --jq .mergeable)
-
-          if [ "$pr_status" == "MERGEABLE" ]; then
-            echo "No conflicts, merging the PR to develop."
-            gh pr merge $pr_number --merge --auto --delete-branch
-          else
-            echo "Conflicts detected, skipping the merge."
-            exit 1
-          fi
+      - name: Enable Pull Request Automerge
+        if: steps.pr_create_develop.outputs.pull-request-operation == 'created'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.PAT }}
+          pull-request-number: ${{ steps.pr_create_develop.outputs.pull-request-number }}
+          merge-method: merge
 
   create_tag_and_release:
     runs-on: ubuntu-latest
