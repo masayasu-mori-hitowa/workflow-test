@@ -24,8 +24,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-            ref: 'stage'
 
       - name: Install GitHub CLI
         run: |
@@ -37,12 +35,12 @@ jobs:
 
       - name: Create Pull Request from `stage` to `main`
         id: pr_create_main
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v6
         with:
+          base: main
+          branch: stage
           title: 'Merge stage to main'
           body: 'Automated pull request to merge `stage` into `main`.'
-          branch: stage
-          base: main
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
           delete-branch: false
@@ -67,17 +65,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: 'main'
+          ref: 'develop'
           fetch-depth: 0
 
       - name: Create Pull Request from `main` to `develop`
         id: pr_create_develop
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v6
         with:
+          base: develop
+          branch: main
           title: 'Merge main to develop'
           body: 'Automated pull request to merge `main` into `develop`.'
-          branch: main
-          base: develop
           commit-message: 'Merging main into develop'
           labels: 'auto-merge'
           delete-branch: false
