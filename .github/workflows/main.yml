@@ -39,7 +39,7 @@ jobs:
           labels: 'auto-merge'
           
       - name: login
-        run: gh auth login
+        run: gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Check for merge conflicts in PR to main
         if: steps.pr_create_main.outputs.pull-request-url != ''
@@ -111,7 +111,7 @@ jobs:
       - name: Create GitHub Release using action-gh-release
         uses: softprops/action-gh-release@v2
         with:
-            tag_name: $VERSION_TAG
+            tag_name: "${{ github.event.inputs.release_title }}"
             release_name: "${{ github.event.inputs.release_title }}"
             generate_release_notes: true
             draft: false
