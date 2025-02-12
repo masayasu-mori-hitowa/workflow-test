@@ -37,7 +37,6 @@ jobs:
           branch: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
-          delete-branch: false
           
       - name: login
         run: gh auth login
@@ -100,6 +99,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+            ref: 'main'
 
       - name: Create a tag for main
         run: |
@@ -110,7 +111,7 @@ jobs:
       - name: Create GitHub Release using action-gh-release
         uses: softprops/action-gh-release@v2
         with:
-            tag_name: ${{ github.ref }}
+            tag_name: $VERSION_TAG
             release_name: "${{ github.event.inputs.release_title }}"
             generate_release_notes: true
             draft: false
