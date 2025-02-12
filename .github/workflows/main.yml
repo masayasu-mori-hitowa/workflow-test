@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install GitHub CLI
         run: |
@@ -29,14 +29,15 @@ jobs:
 
       - name: Create Pull Request from `stage` to `main`
         id: pr_create_main
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v7
         with:
           title: 'Merge stage to main'
           body: 'Automated pull request to merge `stage` into `main`.'
           base: main
-          head: stage
+          branch: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
+          delete-branch: false
           
       - name: login
         run: gh auth login
@@ -61,7 +62,7 @@ jobs:
     needs: merge_to_main
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Ensure branch `main` exists
         run: git fetch origin main
@@ -73,9 +74,10 @@ jobs:
           title: 'Merge main to develop'
           body: 'Automated pull request to merge `main` into `develop`.'
           base: develop
-          head: main
+          branch: main
           commit-message: 'Merging main into develop'
           labels: 'auto-merge'
+          delete-branch: false
 
       - name: Check for merge conflicts in PR to develop
         if: steps.pr_create_develop.outputs.pull-request-url != ''
@@ -97,28 +99,22 @@ jobs:
     needs: merge_to_develop
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Generate release notes
-        run: |
-          # Generate release notes based on the differences between main and develop
-          git log --oneline $(git merge-base main develop)..develop > release-notes.md
+        uses: actions/checkout@v4
 
       - name: Create a tag for main
         run: |
-          VERSION_TAG="v$(date +'%Y%m%d%H%M%S')"
+          VERSION_TAG="${{ github.event.inputs.release_title }}"
           git tag $VERSION_TAG
           git push origin $VERSION_TAG
 
       - name: Create GitHub Release using action-gh-release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: |
-            release-notes.md
+            tag_name: ${{ github.ref }}
+            release_name: "${{ github.event.inputs.release_title }}"
+            generate_release_notes: true
+            draft: false
+            prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Add release title and finalize GitHub Release
-        run: |
-          RELEASE_TITLE="${{ github.event.inputs.release_title }}"
-          gh release create $VERSION_TAG --title "$RELEASE_TITLE" --notes "$(cat release-notes.md)" $VERSION_TAG
