@@ -37,7 +37,7 @@ jobs:
           title: 'Merge stage to main'
           body: 'Automated pull request to merge `stage` into `main`.'
           base: main
-#           branch: stage
+          branch: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
           
@@ -79,7 +79,7 @@ jobs:
           title: 'Merge main to develop'
           body: 'Automated pull request to merge `main` into `develop`.'
           base: develop
-#           branch: main
+          branch: main
           commit-message: 'Merging main into develop'
           labels: 'auto-merge'
           delete-branch: false
