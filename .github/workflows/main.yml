@@ -20,6 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: stage
+          fetch-depth: 0
 
       - name: Install GitHub CLI
         run: |
@@ -66,6 +67,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
       - name: Ensure branch `main` exists
         run: git fetch origin main
