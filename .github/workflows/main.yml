@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: stage
+          fetch-depth: 0
 
       - name: Install GitHub CLI
         run: |
@@ -62,6 +65,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Ensure branch `main` exists
         run: git fetch origin main
