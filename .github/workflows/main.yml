@@ -35,13 +35,15 @@ jobs:
 
       - name: Create Pull Request from `stage` to `main`
         id: pr_create_main
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v6
         with:
+          base: main
+          branch: stage
           title: 'Merge stage to main'
           body: 'Automated pull request to merge `stage` into `main`.'
-          branch: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
+          delete-branch: false
           
       - name: Auto approve
         if: steps.pr_create_main.outputs.pull-request-operation == 'created'
@@ -53,7 +55,6 @@ jobs:
         if: steps.pr_create_main.outputs.pull-request-operation == 'created'
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          token: ${{ secrets.PAT }}
           pull-request-number: ${{ steps.pr_create_main.outputs.pull-request-number }}
           merge-method: merge
 
@@ -64,17 +65,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: develop
+          ref: 'develop'
           fetch-depth: 0
 
       - name: Create Pull Request from `main` to `develop`
         id: pr_create_develop
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.PAT }}
+          base: develop
+          branch: main
           title: 'Merge main to develop'
           body: 'Automated pull request to merge `main` into `develop`.'
-          branch: main
           commit-message: 'Merging main into develop'
           labels: 'auto-merge'
           delete-branch: false
@@ -89,7 +90,6 @@ jobs:
         if: steps.pr_create_develop.outputs.pull-request-operation == 'created'
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          token: ${{ secrets.PAT }}
           pull-request-number: ${{ steps.pr_create_develop.outputs.pull-request-number }}
           merge-method: merge
 
