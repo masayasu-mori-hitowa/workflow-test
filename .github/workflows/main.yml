@@ -37,7 +37,7 @@ jobs:
           title: 'Merge stage to main'
           body: 'Automated pull request to merge `stage` into `main`.'
           base: main
-          head: stage
+#           branch: stage
           commit-message: 'Merging stage into main'
           labels: 'auto-merge'
           
@@ -79,7 +79,7 @@ jobs:
           title: 'Merge main to develop'
           body: 'Automated pull request to merge `main` into `develop`.'
           base: develop
-          head: main
+#           branch: main
           commit-message: 'Merging main into develop'
           labels: 'auto-merge'
           delete-branch: false
@@ -118,7 +118,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
             tag_name: "${{ github.event.inputs.release_title }}"
-            release_name: "${{ github.event.inputs.release_title }}"
+            name: "${{ github.event.inputs.release_title }}"
             generate_release_notes: true
             draft: false
             prerelease: false
