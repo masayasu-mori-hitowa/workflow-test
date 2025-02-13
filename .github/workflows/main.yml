@@ -15,20 +15,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         
-      - name: Print Secrets (for Debugging)
-        run: |
-          echo "RELEASE_MERGE_TOKEN=${{ secrets.RELEASE_MERGE_TOKEN }}"
-        
       # PRを作成する
       - name: Create Pull Request
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
           script: |
+            const releaseTitle = '${{ github.event.inputs.release_title }}';
             const response = await github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: 'リリースv${{ github.event.inputs.release_title }}',
+              title: 'リリース v${releaseTitle}',
               head: 'stage',  # PRの元となるブランチ
               base: 'main',  # PRのマージ先となるブランチ
               body: '',
@@ -93,10 +90,11 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
           script: |
+            const releaseTitle = '${{ github.event.inputs.release_title }}';
             const response = await github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: 'リリースv${{ github.event.inputs.release_title }}',
+              title: 'リリース v${releaseTitle}',
               head: 'main',  # PRの元となるブランチ
               base: 'develop',  # PRのマージ先となるブランチ
               body: '',
