@@ -7,56 +7,74 @@ on:
         description: 'GitHub Release Title'
         required: true
         type: string
-permissions:
-  pull-requests: write # PR を作成・マージするための権限
-  actions: write   # GitHub Actions の権限
-  contents: write    # リポジトリの管理権限（タグ作成、リリース作成）
 
 jobs:
-  login_gh:
-    runs-on: ubuntu-latest
-    steps:
-      - name: login
-        run: gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
- 
   merge_to_main:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install GitHub CLI
-        run: |
-          curl -fsSL https://github.com/cli/cli/releases/download/v2.7.0/gh_2.7.0_linux_amd64.deb -o gh.deb
-          sudo dpkg -i gh.deb
-
-      - name: Ensure branch `stage` exists
-        run: git fetch origin stage
-
-      - name: Create Pull Request from `stage` to `main`
-        id: pr_create_main
-        uses: peter-evans/create-pull-request@v6
+        
+      # PRを作成する
+      - name: Create Pull Request
+        uses: actions/github-script@v7
         with:
-          base: main
-          branch: stage
-          title: 'Merge stage to main'
-          body: 'Automated pull request to merge `stage` into `main`.'
-          commit-message: 'Merging stage into main'
-          labels: 'auto-merge'
-          delete-branch: false
-          
-      - name: Auto approve
-        if: steps.pr_create_main.outputs.pull-request-operation == 'created'
-        run: gh pr review --approve "${{ steps.pr_create_main.outputs.pull-request-number }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.Mori_release_merge_token }}
+          script: |
+            const response = await github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'リリースv${{ github.event.inputs.release_title }}',
+              head: 'stage',  # PRの元となるブランチ
+              base: 'main',  # PRのマージ先となるブランチ
+              body: '',
+            });
 
-      - name: Enable Pull Request Automerge
-        if: steps.pr_create_main.outputs.pull-request-operation == 'created'
-        uses: peter-evans/enable-pull-request-automerge@v3
+            const prNumber = response.data.number;
+            console.log('Pull Request created:', response.data.html_url);
+
+            return prNumber;  # PR番号を次のステップに渡す
+
+      # PRが作成された後に承認
+      - name: Approve Pull Request
+        uses: actions/github-script@v7
         with:
-          pull-request-number: ${{ steps.pr_create_main.outputs.pull-request-number }}
-          merge-method: merge
+          github-token: ${{ secrets.Mori_release_merge_token }}
+          script: |
+            const prNumber = ${{ steps.create-pr.outputs.result }};  # 前のステップで作成したPR番号を取得
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            # PRに対して承認を追加
+            const response = await github.pulls.createReview({
+              owner,
+              repo,
+              pull_number: prNumber,
+              event: 'APPROVE',  # PRを承認
+            });
+
+            console.log('Pull Request approved:', response.data);
+
+      # PRが承認された後にマージ
+      - name: Merge Pull Request
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.Mori_release_merge_token }}
+          script: |
+            const prNumber = ${{ steps.create-pr.outputs.result }};  # 前のステップで作成したPR番号を取得
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            # PRをマージ
+            const response = await github.pulls.merge({
+              owner,
+              repo,
+              pull_number: prNumber,
+              commit_title: `Merge PR #${prNumber}`,
+              merge_method: 'merge', 
+            });
+
+            console.log('Pull Request merged:', response.data);
 
   merge_to_develop:
     runs-on: ubuntu-latest
@@ -64,34 +82,67 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        
+      # PRを作成する
+      - name: Create Pull Request
+        uses: actions/github-script@v7
         with:
-          ref: 'develop'
-          fetch-depth: 0
+          github-token: ${{ secrets.Mori_release_merge_token }}
+          script: |
+            const response = await github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'リリースv${{ github.event.inputs.release_title }}',
+              head: 'main',  # PRの元となるブランチ
+              base: 'develop',  # PRのマージ先となるブランチ
+              body: '',
+            });
 
-      - name: Create Pull Request from `main` to `develop`
-        id: pr_create_develop
-        uses: peter-evans/create-pull-request@v6
-        with:
-          base: develop
-          branch: main
-          title: 'Merge main to develop'
-          body: 'Automated pull request to merge `main` into `develop`.'
-          commit-message: 'Merging main into develop'
-          labels: 'auto-merge'
-          delete-branch: false
-          
-      - name: Auto approve
-        if: steps.pr_create_develop.outputs.pull-request-operation == 'created'
-        run: gh pr review --approve "${{ steps.pr_create_develop.outputs.pull-request-number }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            const prNumber = response.data.number;
+            console.log('Pull Request created:', response.data.html_url);
 
-      - name: Enable Pull Request Automerge
-        if: steps.pr_create_develop.outputs.pull-request-operation == 'created'
-        uses: peter-evans/enable-pull-request-automerge@v3
+            return prNumber;  # PR番号を次のステップに渡す
+
+      # PRが作成された後に承認
+      - name: Approve Pull Request
+        uses: actions/github-script@v7
         with:
-          pull-request-number: ${{ steps.pr_create_develop.outputs.pull-request-number }}
-          merge-method: merge
+          github-token: ${{ secrets.Mori_release_merge_token }}
+          script: |
+            const prNumber = ${{ steps.create-pr.outputs.result }};  # 前のステップで作成したPR番号を取得
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            # PRに対して承認を追加
+            const response = await github.pulls.createReview({
+              owner,
+              repo,
+              pull_number: prNumber,
+              event: 'APPROVE',  # PRを承認
+            });
+
+            console.log('Pull Request approved:', response.data);
+
+      # PRが承認された後にマージ
+      - name: Merge Pull Request
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.Mori_release_merge_token }}
+          script: |
+            const prNumber = ${{ steps.create-pr.outputs.result }};  # 前のステップで作成したPR番号を取得
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            # PRをマージ
+            const response = await github.pulls.merge({
+              owner,
+              repo,
+              pull_number: prNumber,
+              commit_title: `Merge PR #${prNumber}`,
+              merge_method: 'merge', 
+            });
+
+            console.log('Pull Request merged:', response.data);
 
   create_tag_and_release:
     runs-on: ubuntu-latest
