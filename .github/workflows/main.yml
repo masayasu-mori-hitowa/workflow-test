@@ -14,6 +14,7 @@ permissions:
 jobs:
   merge_to_main:
     runs-on: ubuntu-latest
+    if: github.actor == 'masayasu-mori-hitowa'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -60,6 +61,7 @@ jobs:
 
   merge_to_develop:
     runs-on: ubuntu-latest
+    if: github.actor == 'masayasu-mori-hitowa'
     needs: merge_to_main
     steps:
       - name: Checkout repository
@@ -107,6 +109,7 @@ jobs:
 
   create_tag_and_release:
     runs-on: ubuntu-latest
+    if: github.actor == 'masayasu-mori-hitowa'
     needs: merge_to_develop
     steps:
       - name: Checkout repository
