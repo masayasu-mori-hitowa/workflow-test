@@ -3,9 +3,17 @@ name: Merge and Create GitHub Release
 on:
   workflow_dispatch:
     inputs:
-      release_title:
-        description: 'GitHub Release Title'
+      tag_name:
+        description: 'タグ名（例: 「1.0.0」）'
         required: true
+        type: string
+      overview:
+        desctiption: '概要'
+        required: true
+        type: string
+      backlog_url:
+        description: 'BacklogタスクのURL'
+        required: false
         type: string
         
 permissions:
@@ -25,7 +33,7 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
           script: |
-            const releaseTitle = '${{ github.event.inputs.release_title }}';
+            const releaseTitle = '${{ github.event.inputs.tag_name }}';
             const response = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -73,7 +81,7 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
           script: |
-            const releaseTitle = '${{ github.event.inputs.release_title }}';
+            const releaseTitle = '${{ github.event.inputs.tag_name }}';
             const response = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -119,15 +127,21 @@ jobs:
 
       - name: Create a tag for main
         run: |
-          VERSION_TAG="${{ github.event.inputs.release_title }}"
+          VERSION_TAG="${{ github.event.inputs.tag_name }}"
           git tag $VERSION_TAG
           git push origin $VERSION_TAG
 
       - name: Create GitHub Release using action-gh-release
         uses: softprops/action-gh-release@v2
         with:
-            tag_name: "${{ github.event.inputs.release_title }}"
-            name: "${{ github.event.inputs.release_title }}"
+            tag_name: "${{ github.event.inputs.tag_name }}"
+            name: "${{ github.event.inputs.tag_name }}"
+            body: |
+                # 概要
+                ${{ github.event.inputs.overview }}
+
+                # Backlog
+                ${{ github.event.inputs.backlog_url }}
             generate_release_notes: true
             draft: false
             prerelease: false
