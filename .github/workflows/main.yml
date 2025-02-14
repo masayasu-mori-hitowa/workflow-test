@@ -116,6 +116,8 @@ jobs:
           VERSION_TAG="${{ github.event.inputs.release_title }}"
           git tag $VERSION_TAG
           git push origin $VERSION_TAG
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_MERGE_TOKEN }}
 
       - name: Create GitHub Release using action-gh-release
         uses: softprops/action-gh-release@v2
