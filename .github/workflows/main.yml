@@ -36,24 +36,6 @@ jobs:
 
             return prNumber;
 
-      - name: Approve Pull Request
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
-          script: |
-            const prNumber = ${{ steps.create-to-main-pr.outputs.result }};
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            const response = await github.rest.pulls.createReview({
-              owner,
-              repo,
-              pull_number: prNumber,
-              event: 'APPROVE',
-            });
-
-            console.log('Pull Request approved:', response.data);
-
       - name: Merge Pull Request
         uses: actions/github-script@v7
         with:
@@ -100,24 +82,6 @@ jobs:
             console.log('Pull Request created:', response.data.html_url);
 
             return prNumber; 
-
-      - name: Approve Pull Request
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
-          script: |
-            const prNumber = ${{ steps.create-to-develop-pr.outputs.result }};
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            const response = await github.rest.pulls.createReview({
-              owner,
-              repo,
-              pull_number: prNumber,
-              event: 'APPROVE', 
-            });
-
-            console.log('Pull Request approved:', response.data);
 
       - name: Merge Pull Request
         uses: actions/github-script@v7
