@@ -21,11 +21,11 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
           script: |
-            const releaseTitle = '${{ github.event.inputs.release_title }}';
+#             const releaseTitle = '${{ github.event.inputs.release_title }}';
             const response = await github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `リリース v${releaseTitle}`,
+              title: 'リリース v1.0.0',
               head: 'stage',  # PRの元となるブランチ
               base: 'main',  # PRのマージ先となるブランチ
               body: '',
@@ -90,11 +90,11 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
           script: |
-            const releaseTitle = '${{ github.event.inputs.release_title }}';
+#             const releaseTitle = '${{ github.event.inputs.release_title }}';
             const response = await github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `リリース v${releaseTitle}`,
+              title: `リリース 1.0.0`,
               head: 'main',  # PRの元となるブランチ
               base: 'develop',  # PRのマージ先となるブランチ
               body: '',
