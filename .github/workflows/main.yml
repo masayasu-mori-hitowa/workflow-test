@@ -7,6 +7,9 @@ on:
         description: 'GitHub Release Title'
         required: true
         type: string
+        
+permissions:
+  contents: write
 
 jobs:
 #   merge_to_main:
@@ -113,13 +116,9 @@ jobs:
 
       - name: Create a tag for main
         run: |
-            VERSION_TAG="${{ github.event.inputs.release_title }}"
-            git config --global user.name "GitHub Actions"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git tag $VERSION_TAG
-            git push https://${{ secrets.RELEASE_MERGE_TOKEN }}@github.com/${{ github.repository }} $VERSION_TAG
-        env:
-             GITHUB_TOKEN: ${{ secrets.RELEASE_MERGE_TOKEN }}
+          VERSION_TAG="${{ github.event.inputs.release_title }}"
+          git tag $VERSION_TAG
+          git push origin $VERSION_TAG
 
       - name: Create GitHub Release using action-gh-release
         uses: softprops/action-gh-release@v2
@@ -130,5 +129,5 @@ jobs:
             draft: false
             prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_MERGE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
