@@ -12,102 +12,102 @@ permissions:
   contents: write
 
 jobs:
-#   merge_to_main:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#         
-#       - name: Create Pull Request
-#         uses: actions/github-script@v7
-#         id: create-to-main-pr
-#         with:
-#           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
-#           script: |
-#             const releaseTitle = '${{ github.event.inputs.release_title }}';
-#             const response = await github.rest.pulls.create({
-#               owner: context.repo.owner,
-#               repo: context.repo.repo,
-#               title: `リリース v${releaseTitle}`,
-#               head: 'stage', 
-#               base: 'main',
-#               body: '',
-#             });
-# 
-#             const prNumber = response.data.number;
-#             console.log('Pull Request created:', response.data.html_url);
-# 
-#             return prNumber;
-# 
-#       - name: Merge Pull Request
-#         uses: actions/github-script@v7
-#         with:
-#           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
-#           script: |
-#             const prNumber = ${{ steps.create-to-main-pr.outputs.result }};
-#             const owner = context.repo.owner;
-#             const repo = context.repo.repo;
-# 
-#             const response = await github.rest.pulls.merge({
-#               owner,
-#               repo,
-#               pull_number: prNumber,
-#               commit_title: `Merge PR ${prNumber}`,
-#               merge_method: 'merge', 
-#             });
-# 
-#             console.log('Pull Request merged:', response.data);
-# 
-#   merge_to_develop:
-#     runs-on: ubuntu-latest
-#     needs: merge_to_main
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#         
-#       - name: Create Pull Request
-#         uses: actions/github-script@v7
-#         id: create-to-develop-pr
-#         with:
-#           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
-#           script: |
-#             const releaseTitle = '${{ github.event.inputs.release_title }}';
-#             const response = await github.rest.pulls.create({
-#               owner: context.repo.owner,
-#               repo: context.repo.repo,
-#               title: `リリース v${releaseTitle}`,
-#               head: 'main',
-#               base: 'develop', 
-#               body: '',
-#             });
-# 
-#             const prNumber = response.data.number;
-#             console.log('Pull Request created:', response.data.html_url);
-# 
-#             return prNumber; 
-# 
-#       - name: Merge Pull Request
-#         uses: actions/github-script@v7
-#         with:
-#           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
-#           script: |
-#             const prNumber = ${{ steps.create-to-develop-pr.outputs.result }}; 
-#             const owner = context.repo.owner;
-#             const repo = context.repo.repo;
-# 
-#             const response = await github.rest.pulls.merge({
-#               owner,
-#               repo,
-#               pull_number: prNumber,
-#               commit_title: `Merge PR ${prNumber}`,
-#               merge_method: 'merge', 
-#             });
-# 
-#             console.log('Pull Request merged:', response.data);
+  merge_to_main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Create Pull Request
+        uses: actions/github-script@v7
+        id: create-to-main-pr
+        with:
+          github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
+          script: |
+            const releaseTitle = '${{ github.event.inputs.release_title }}';
+            const response = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `リリース v${releaseTitle}`,
+              head: 'stage', 
+              base: 'main',
+              body: '',
+            });
+
+            const prNumber = response.data.number;
+            console.log('Pull Request created:', response.data.html_url);
+
+            return prNumber;
+
+      - name: Merge Pull Request
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
+          script: |
+            const prNumber = ${{ steps.create-to-main-pr.outputs.result }};
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const response = await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: prNumber,
+              commit_title: `Merge PR ${prNumber}`,
+              merge_method: 'merge', 
+            });
+
+            console.log('Pull Request merged:', response.data);
+
+  merge_to_develop:
+    runs-on: ubuntu-latest
+    needs: merge_to_main
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Create Pull Request
+        uses: actions/github-script@v7
+        id: create-to-develop-pr
+        with:
+          github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
+          script: |
+            const releaseTitle = '${{ github.event.inputs.release_title }}';
+            const response = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `リリース v${releaseTitle}`,
+              head: 'main',
+              base: 'develop', 
+              body: '',
+            });
+
+            const prNumber = response.data.number;
+            console.log('Pull Request created:', response.data.html_url);
+
+            return prNumber; 
+
+      - name: Merge Pull Request
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
+          script: |
+            const prNumber = ${{ steps.create-to-develop-pr.outputs.result }}; 
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const response = await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: prNumber,
+              commit_title: `Merge PR ${prNumber}`,
+              merge_method: 'merge', 
+            });
+
+            console.log('Pull Request merged:', response.data);
 
   create_tag_and_release:
     runs-on: ubuntu-latest
-#     needs: merge_to_develop
+    needs: merge_to_develop
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
