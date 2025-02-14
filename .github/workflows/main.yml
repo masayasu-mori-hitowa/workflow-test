@@ -21,7 +21,6 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
           script: |
-#             const releaseTitle = '${{ github.event.inputs.release_title }}';
             const response = await github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -90,7 +89,6 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
           script: |
-#             const releaseTitle = '${{ github.event.inputs.release_title }}';
             const response = await github.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
