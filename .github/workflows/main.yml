@@ -17,9 +17,9 @@ jobs:
         
       - name: Create Pull Request
         uses: actions/github-script@v7
+        id: create-to-main-pr
         with:
           github-token: ${{ secrets.RELEASE_MERGE_TOKEN }}
-          id: create-to-main-pr
           script: |
             const releaseTitle = '${{ github.event.inputs.release_title }}';
             const response = await github.rest.pulls.create({
