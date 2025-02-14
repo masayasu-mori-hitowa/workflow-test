@@ -21,7 +21,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const releaseTitle = '${{ github.event.inputs.release_title }}';
-            const response = await github.pulls.create({
+            const response = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `リリース v${releaseTitle}`,
@@ -44,7 +44,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const response = await github.pulls.createReview({
+            const response = await github.rest.pulls.createReview({
               owner,
               repo,
               pull_number: prNumber,
@@ -62,7 +62,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const response = await github.pulls.merge({
+            const response = await github.rest.pulls.merge({
               owner,
               repo,
               pull_number: prNumber,
@@ -85,7 +85,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const releaseTitle = '${{ github.event.inputs.release_title }}';
-            const response = await github.pulls.create({
+            const response = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `リリース v${releaseTitle}`,
@@ -108,7 +108,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const response = await github.pulls.createReview({
+            const response = await github.rest.pulls.createReview({
               owner,
               repo,
               pull_number: prNumber,
@@ -126,7 +126,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const response = await github.pulls.merge({
+            const response = await github.rest.pulls.merge({
               owner,
               repo,
               pull_number: prNumber,
