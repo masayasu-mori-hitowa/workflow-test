@@ -1,0 +1,44 @@
+name: Create PR Develop to Base Branches
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
+
+jobs:
+  create-pr-to-base-branches:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Create PR to base/* branches
+        uses: peter-evans/github-script@v7
+        with:
+          script: |
+            // Get the list of base/* branches
+            const baseBranches = await github.paginate(
+              github.rest.repos.listBranches,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              }
+            );
+
+            const baseBranchNames = baseBranches
+              .filter(branch => branch.name.startsWith('base/'))
+              .map(branch => branch.name);
+
+            // Create PRs for each base/* branch
+            for (const baseBranch of baseBranchNames) {
+              await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Auto merge develop into ${baseBranch}`,
+                body: `This PR is automatically created to merge develop into ${baseBranch}`,
+                base: baseBranch,
+                head: 'develop',
+              });
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
