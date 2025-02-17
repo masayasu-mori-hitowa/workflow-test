@@ -141,7 +141,7 @@ jobs:
                 ${{ github.event.inputs.overview }}
 
                 # Backlog
-                [${{ github.event.inputs.backlog_url }}](${{ github.event.inputs.backlog_url }})
+                ${{ github.event.inputs.backlog_url }}
             generate_release_notes: true
             draft: false
             prerelease: false
