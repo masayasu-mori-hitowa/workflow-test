@@ -5,6 +5,9 @@ on:
     types: [closed]
     branches:
       - develop
+      
+permissions:
+  contents: write
 
 jobs:
   merge-develop-into-base-branches:
@@ -33,7 +36,7 @@ jobs:
 
       - name: Log in to GitHub CLI
         run: |
-          gh auth login --with-token < $GITHUB_TOKEN
+          echo $GITHUB_TOKEN | gh auth login --with-token
 
       - name: Merge develop into base branches
         run: |
