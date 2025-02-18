@@ -36,7 +36,10 @@ jobs:
 
       - name: Log in to GitHub CLI
         run: |
-          echo $GITHUB_TOKEN | gh auth login --with-token
+          gh auth login --with-token <<< $GITHUB_TOKEN
+          
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge develop into base branches
         run: |
@@ -60,7 +63,7 @@ jobs:
               MERGE_COMMITTER=$(git show -s --format='%an' ${MERGE_COMMIT_SHA})
               
               # Create PR using github-script
-              gh pr create --title "$PR_TITLE" --body "$PR_BODY" --base "$BASE_BRANCH" --head "conflict-fix/${BASE_BRANCH}-develop" --repo $GITHUB_REPOSITORY --assignee "$MERGE_COMMITTER, masayasu-mori-hitowa"
+              gh pr create --title "$PR_TITLE" --body "$PR_BODY" --base "$BASE_BRANCH" --head "conflict-fix/${BRANCH_NAME}-develop" --repo $GITHUB_REPOSITORY --assignee "$MERGE_COMMITTER, masayasu-mori-hitowa"
             }
           done
 
