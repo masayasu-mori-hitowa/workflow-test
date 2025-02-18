@@ -37,9 +37,6 @@ jobs:
       - name: Log in to GitHub CLI
         run: |
           gh auth login --with-token <<< $GITHUB_TOKEN
-          
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge develop into base branches
         run: |
