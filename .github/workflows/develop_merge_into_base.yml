@@ -28,7 +28,7 @@ jobs:
       - name: Get the list of base/* branches
         run: |
           git fetch --all
-          BASE_BRANCHES=$(git branch -r | grep 'origin/base/' | sed 's/origin\///')
+          BASE_BRANCHES=$(git branch -r | grep 'origin/base/' | sed 's/origin\///' | tr -d '\n' | tr -s ' ')
           echo "BASE_BRANCHES=${BASE_BRANCHES}" >> $GITHUB_ENV
 
       - name: Log in to GitHub CLI
