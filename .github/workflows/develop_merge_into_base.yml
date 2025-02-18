@@ -5,6 +5,9 @@ on:
     types: [closed]
     branches:
       - develop
+      
+permissions:
+  contents: write
 
 jobs:
   merge-develop-into-base-branches:
@@ -15,10 +18,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-        # マージしたブランチが削除するのを待つために30秒後に実行する
-      - name: Wait for 1 hour before continuing
+        # マージしたブランチが削除するのを待つために10秒後に実行する
+      - name: Wait for 10 seconds before continuing
         run: |
-          sleep 30
+          sleep 10
 
       - name: Set up Git
         run: |
@@ -28,12 +31,12 @@ jobs:
       - name: Get the list of base/* branches
         run: |
           git fetch --all
-          BASE_BRANCHES=$(git branch -r | grep 'origin/base/' | sed 's/origin\///')
+          BASE_BRANCHES=$(git branch -r | grep 'origin/base/' | sed 's/origin\///' | tr -d '\n' | tr -s ' ')
           echo "BASE_BRANCHES=${BASE_BRANCHES}" >> $GITHUB_ENV
 
       - name: Log in to GitHub CLI
         run: |
-          gh auth login --with-token < $GITHUB_TOKEN
+          echo $GITHUB_TOKEN | gh auth login --with-token
 
       - name: Merge develop into base branches
         run: |
@@ -41,11 +44,12 @@ jobs:
             echo "Merging develop into $BASE_BRANCH"
             git checkout $BASE_BRANCH
             git pull origin $BASE_BRANCH
-            git merge origin/develop || {
+            git merge origin/develop --allow-unrelated-histories || {
               echo "Merge conflict detected in $BASE_BRANCH. Creating conflict-fix branch."
-              git checkout -b conflict-fix/${BASE_BRANCH}-develop
-              git merge origin/develop --strategy=recursive --strategy-option=theirs
-              git push origin conflict-fix/${BASE_BRANCH}-develop
+              BRANCH_NAME=$(echo $BASE_BRANCH | sed 's/^base\///')
+              git checkout -b conflict-fix/${BRANCH_NAME}-develop
+              git merge origin/develop --strategy=recursive --strategy-option=theirs --allow-unrelated-histories
+              git push origin conflict-fix/${BRANCH_NAME}-develop
               
               # PR title and body
               PR_TITLE="Auto merge conflict-fix: ${BASE_BRANCH} into develop"
@@ -62,7 +66,3 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-permissions:
-  contents: write
-  pull-requests: write
