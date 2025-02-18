@@ -6,10 +6,6 @@ on:
     branches:
       - develop
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   merge-develop-into-base-branches:
     runs-on: ubuntu-latest
@@ -37,7 +33,7 @@ jobs:
 
       - name: Log in to GitHub CLI
         run: |
-          echo $GITHUB_TOKEN | gh auth login --with-token
+          gh auth login --with-token < $GITHUB_TOKEN
 
       - name: Merge develop into base branches
         run: |
@@ -45,11 +41,12 @@ jobs:
             echo "Merging develop into $BASE_BRANCH"
             git checkout $BASE_BRANCH
             git pull origin $BASE_BRANCH
-            git merge origin/develop || {
+            git merge origin/develop --allow-unrelated-histories || {
               echo "Merge conflict detected in $BASE_BRANCH. Creating conflict-fix branch."
-              git checkout -b conflict-fix/${BASE_BRANCH}-develop
-              git merge origin/develop --strategy=recursive --strategy-option=theirs
-              git push origin conflict-fix/${BASE_BRANCH}-develop
+              BRANCH_NAME=$(echo $BASE_BRANCH | sed 's/^base\///')
+              git checkout -b conflict-fix/${BRANCH_NAME}-develop
+              git merge origin/develop --strategy=recursive --strategy-option=theirs --allow-unrelated-histories
+              git push origin conflict-fix/${BRANCH_NAME}-develop
               
               # PR title and body
               PR_TITLE="Auto merge conflict-fix: ${BASE_BRANCH} into develop"
